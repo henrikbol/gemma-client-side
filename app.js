@@ -18,6 +18,7 @@ const output     = document.getElementById("output");
 const textInput  = document.getElementById("text-input");
 const fileTab    = document.getElementById("file-tab");
 const textTab    = document.getElementById("text-tab");
+const textPreview    = document.getElementById("text-preview");
 const renderContainer = document.getElementById("render-container");
 
 const progressWrap   = document.getElementById("progress-wrap");
@@ -129,6 +130,8 @@ async function handleFile(file) {
   const type = file.type;
 
   preview.hidden = true;
+  textPreview.hidden = true;
+  textPreview.textContent = "";
   fileInfo.hidden = true;
   fileInfo.innerHTML = "";
   inputData = null;
@@ -200,36 +203,26 @@ async function handleDocx(file) {
   statusEl.textContent = "Converting Word document…";
   statusEl.className = "";
   const arrayBuffer = await file.arrayBuffer();
-  const result = await mammoth.convertToHtml({ arrayBuffer });
-  renderContainer.innerHTML = result.value;
+  const result = await mammoth.extractRawText({ arrayBuffer });
+  const text = result.value.replace(/^\s*\n/, "");
 
-  // Wait for rendering
-  await new Promise(r => setTimeout(r, 200));
-
-  const canvas = await html2canvas(renderContainer, { scale: 2, useCORS: true });
-  const blob = await new Promise(r => canvas.toBlob(r, "image/png"));
-  renderContainer.innerHTML = "";
-
-  preview.src = URL.createObjectURL(blob);
-  preview.hidden = false;
+  textPreview.textContent = text.slice(0, 500) + (text.length > 500 ? "\n…" : "");
+  textPreview.hidden = false;
   fileInfo.innerHTML = `<strong>${file.name}</strong> <span class="badge">Word</span>`;
   fileInfo.hidden = false;
-  inputData = { type: "images", images: [blob] };
+  inputData = { type: "text", text };
   statusEl.textContent = "Document ready.";
   statusEl.className = "ready";
 }
 
 async function handleTextFile(file) {
-  const text = await file.text();
-  // Switch to text tab and populate
-  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-  document.querySelector('[data-tab="text"]').classList.add("active");
-  activeTab = "text";
-  fileTab.classList.add("hidden");
-  textTab.classList.remove("hidden");
-  textInput.value = text;
-  inputData = { type: "text", text };
+  const text = (await file.text()).replace(/^\s*\n/, "");
+
+  textPreview.textContent = text.slice(0, 500) + (text.length > 500 ? "\n…" : "");
+  textPreview.hidden = false;
   fileInfo.innerHTML = `<strong>${file.name}</strong> <span class="badge">Text</span>`;
+  fileInfo.hidden = false;
+  inputData = { type: "text", text };
 }
 
 function updateRunBtn() {
