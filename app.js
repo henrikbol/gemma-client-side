@@ -206,7 +206,7 @@ async function handleDocx(file) {
   const result = await mammoth.extractRawText({ arrayBuffer });
   const text = result.value.replace(/^\s*\n/, "");
 
-  textPreview.textContent = text.slice(0, 500) + (text.length > 500 ? "\n…" : "");
+  textPreview.textContent = text;
   textPreview.hidden = false;
   fileInfo.innerHTML = `<strong>${file.name}</strong> <span class="badge">Word</span>`;
   fileInfo.hidden = false;
@@ -218,7 +218,7 @@ async function handleDocx(file) {
 async function handleTextFile(file) {
   const text = (await file.text()).replace(/^\s*\n/, "");
 
-  textPreview.textContent = text.slice(0, 500) + (text.length > 500 ? "\n…" : "");
+  textPreview.textContent = text;
   textPreview.hidden = false;
   fileInfo.innerHTML = `<strong>${file.name}</strong> <span class="badge">Text</span>`;
   fileInfo.hidden = false;
